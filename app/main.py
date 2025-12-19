@@ -1,3 +1,9 @@
+"""
+Cold Outreach Email Agent - Main Entry Point
+
+MIP-003 compliant AI agent for the Masumi Network.
+Generates personalized cold outreach emails for B2B sales.
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
@@ -23,6 +29,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(router)
 
+
 @app.get("/")
 async def root():
     """Root endpoint with agent info."""
@@ -38,6 +45,7 @@ async def root():
         },
         "documentation": "/docs"
     }
+
 
 @app.get("/health")
 async def health_check():

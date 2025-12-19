@@ -1,3 +1,8 @@
+"""
+API Routes for Cold Outreach Email Agent
+
+MIP-003 compliant endpoints for the Masumi Network.
+"""
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from app.models.schemas import (
     AvailabilityResponse,
@@ -12,6 +17,7 @@ from app.config import settings
 
 router = APIRouter()
 
+
 @router.get("/availability", response_model=AvailabilityResponse)
 async def check_availability():
     """
@@ -20,204 +26,148 @@ async def check_availability():
     """
     return AvailabilityResponse(
         status="available",
-        agent_name=settings.APP_NAME,
+        name=settings.APP_NAME,
         version=settings.APP_VERSION
     )
+
 
 @router.get("/input_schema", response_model=InputSchemaResponse)
 async def get_input_schema():
     """
     MIP-003 Endpoint: Get the input schema for the agent.
-    Returns the expected input data structure.
+    Returns the expected input data structure for cold outreach email generation.
     """
     schema = [
         {
-            "name": "full_name",
+            "name": "sender_name",
             "type": "string",
             "required": True,
             "description": "Your full name"
         },
         {
-            "name": "email",
+            "name": "sender_company",
             "type": "string",
             "required": True,
-            "description": "Your email address"
+            "description": "Your company name"
         },
         {
-            "name": "phone",
-            "type": "string",
-            "required": False,
-            "description": "Your phone number"
-        },
-        {
-            "name": "location",
-            "type": "string",
-            "required": False,
-            "description": "Your city and country (e.g., 'San Francisco, USA')"
-        },
-        {
-            "name": "linkedin",
-            "type": "string",
-            "required": False,
-            "description": "Your LinkedIn profile URL"
-        },
-        {
-            "name": "portfolio",
-            "type": "string",
-            "required": False,
-            "description": "Your portfolio or personal website URL"
-        },
-        {
-            "name": "github",
-            "type": "string",
-            "required": False,
-            "description": "Your GitHub profile URL"
-        },
-        {
-            "name": "target_role",
+            "name": "sender_role",
             "type": "string",
             "required": True,
-            "description": "The job title/role you're applying for (e.g., 'Senior Software Engineer')"
+            "description": "Your job title/role"
         },
         {
-            "name": "target_industry",
+            "name": "sender_email",
             "type": "string",
             "required": False,
-            "description": "Target industry (e.g., 'Technology', 'Finance')"
+            "description": "Your email address (optional)"
         },
         {
-            "name": "professional_summary",
+            "name": "recipient_name",
+            "type": "string",
+            "required": True,
+            "description": "Recipient's name"
+        },
+        {
+            "name": "recipient_company",
+            "type": "string",
+            "required": True,
+            "description": "Recipient's company name"
+        },
+        {
+            "name": "recipient_role",
             "type": "string",
             "required": False,
-            "description": "Brief professional summary (AI will generate if not provided)"
+            "description": "Recipient's job title/role"
         },
         {
-            "name": "work_experience",
-            "type": "array",
-            "required": False,
-            "description": "List of work experience entries",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "job_title": {"type": "string", "description": "Job title"},
-                    "company": {"type": "string", "description": "Company name"},
-                    "location": {"type": "string", "description": "City, Country"},
-                    "start_date": {"type": "string", "description": "Start date (e.g., 'Jan 2020')"},
-                    "end_date": {"type": "string", "description": "End date or 'Present'"},
-                    "responsibilities": {"type": "array", "items": {"type": "string"}, "description": "Key responsibilities"}
-                }
-            }
-        },
-        {
-            "name": "education",
-            "type": "array",
-            "required": False,
-            "description": "List of education entries",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "degree": {"type": "string", "description": "Degree name"},
-                    "institution": {"type": "string", "description": "Institution name"},
-                    "location": {"type": "string", "description": "City, Country"},
-                    "graduation_date": {"type": "string", "description": "Graduation date"},
-                    "gpa": {"type": "string", "description": "GPA if notable"},
-                    "honors": {"type": "array", "items": {"type": "string"}, "description": "Honors/awards"}
-                }
-            }
-        },
-        {
-            "name": "technical_skills",
-            "type": "array",
-            "required": False,
-            "description": "List of technical/hard skills",
-            "items": {"type": "string"}
-        },
-        {
-            "name": "soft_skills",
-            "type": "array",
-            "required": False,
-            "description": "List of soft skills",
-            "items": {"type": "string"}
-        },
-        {
-            "name": "languages",
-            "type": "array",
-            "required": False,
-            "description": "Languages spoken",
-            "items": {"type": "string"}
-        },
-        {
-            "name": "projects",
-            "type": "array",
-            "required": False,
-            "description": "Notable projects",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "description": {"type": "string"},
-                    "technologies": {"type": "array", "items": {"type": "string"}},
-                    "link": {"type": "string"}
-                }
-            }
-        },
-        {
-            "name": "certifications",
-            "type": "array",
-            "required": False,
-            "description": "Professional certifications",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "issuer": {"type": "string"},
-                    "date": {"type": "string"},
-                    "credential_id": {"type": "string"}
-                }
-            }
-        },
-        {
-            "name": "achievements",
-            "type": "array",
-            "required": False,
-            "description": "Key achievements/awards",
-            "items": {"type": "string"}
-        },
-        {
-            "name": "style",
+            "name": "recipient_industry",
             "type": "string",
             "required": False,
-            "description": "Resume style: 'professional', 'modern', 'creative', 'executive', 'technical', or 'academic'",
+            "description": "Recipient's industry"
+        },
+        {
+            "name": "product_or_service",
+            "type": "string",
+            "required": True,
+            "description": "What product/service are you offering?"
+        },
+        {
+            "name": "value_proposition",
+            "type": "string",
+            "required": True,
+            "description": "Key value proposition - what problem do you solve?"
+        },
+        {
+            "name": "personalization_notes",
+            "type": "string",
+            "required": False,
+            "description": "Any personal details about the recipient (recent news, shared connections, etc.)"
+        },
+        {
+            "name": "call_to_action",
+            "type": "string",
+            "required": False,
+            "description": "Desired call to action (e.g., 'schedule a 15-min call')"
+        },
+        {
+            "name": "tone",
+            "type": "string",
+            "required": False,
+            "description": "Desired tone: 'professional', 'casual', 'friendly', 'formal', 'persuasive', or 'consultative'",
             "default": "professional"
         },
         {
-            "name": "format",
+            "name": "length",
             "type": "string",
             "required": False,
-            "description": "Resume format: 'chronological', 'functional', or 'combination'",
-            "default": "chronological"
+            "description": "Desired length: 'short' (~50-75 words), 'medium' (~100-150 words), or 'long' (~200-250 words)",
+            "default": "medium"
         },
         {
-            "name": "include_cover_letter",
+            "name": "include_subject_line",
             "type": "boolean",
             "required": False,
-            "description": "Whether to also generate a cover letter",
-            "default": False
+            "description": "Whether to generate a subject line",
+            "default": True
         },
         {
-            "name": "job_description",
+            "name": "num_variations",
+            "type": "integer",
+            "required": False,
+            "description": "Number of email variations to generate (1-3)",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 3
+        },
+        {
+            "name": "previous_interaction",
             "type": "string",
             "required": False,
-            "description": "Job description to tailor the resume to"
+            "description": "Any previous interaction or context"
+        },
+        {
+            "name": "specific_pain_points",
+            "type": "array",
+            "required": False,
+            "description": "Specific pain points to address",
+            "items": {"type": "string"}
+        },
+        {
+            "name": "competitor_mentions",
+            "type": "string",
+            "required": False,
+            "description": "Any competitor context to reference"
         }
     ]
     
     return InputSchemaResponse(input_data=schema)
 
+
 @router.post("/start_job", response_model=StartJobResponse)
 async def start_job(request: StartJobRequest, background_tasks: BackgroundTasks):
     """
-    MIP-003 Endpoint: Start a new resume generation job.
+    MIP-003 Endpoint: Start a new cold outreach email generation job.
     Creates a job and processes it in the background.
     """
     # Create the job
@@ -239,8 +189,9 @@ async def start_job(request: StartJobRequest, background_tasks: BackgroundTasks)
             "agent_identifier": settings.AGENT_IDENTIFIER,
             "network": settings.NETWORK
         },
-        message=f"Resume generation job created. Generating {request.input_data.style.value} resume for {request.input_data.full_name}"
+        message=f"Cold outreach email generation started for {request.input_data.recipient_name} at {request.input_data.recipient_company}"
     )
+
 
 @router.get("/status", response_model=JobStatusResponse)
 async def get_job_status(job_id: str):

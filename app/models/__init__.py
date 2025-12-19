@@ -1,12 +1,11 @@
+"""
+Model exports for Cold Outreach Email Agent
+"""
 from .schemas import (
     JobStatus,
-    ResumeStyle,
-    ResumeFormat,
-    WorkExperience,
-    Education,
-    Project,
-    Certification,
-    ResumeInput,
+    EmailTone,
+    EmailLength,
+    EmailInput,
     StartJobRequest,
     JobStatusResponse,
     AvailabilityResponse,
@@ -16,13 +15,9 @@ from .schemas import (
 
 __all__ = [
     "JobStatus",
-    "ResumeStyle", 
-    "ResumeFormat",
-    "WorkExperience",
-    "Education",
-    "Project",
-    "Certification",
-    "ResumeInput",
+    "EmailTone",
+    "EmailLength",
+    "EmailInput",
     "StartJobRequest",
     "JobStatusResponse",
     "AvailabilityResponse",

@@ -1,9 +1,12 @@
-from .resume_generator import resume_generator, ResumeGenerator
+"""
+Service layer exports for Cold Outreach Email Agent
+"""
+from .email_generator import email_generator, EmailGenerator
 from .job_manager import job_manager, JobManager
 
 __all__ = [
-    "resume_generator",
-    "ResumeGenerator",
+    "email_generator",
+    "EmailGenerator",
     "job_manager", 
     "JobManager"
 ]

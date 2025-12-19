@@ -1,113 +1,348 @@
-# Resume Generator Agent
+# Cold Outreach Email AI Agent 🎯
 
-AI-powered professional resume and CV generator built for the Masumi Network.
+**One API call. Three AI agents. Zero spam vibes.**
 
-## Features
+An autonomous agent that researches a company, writes personalized cold emails, and quality-checks them before you hit send. Built for the [Masumi](https://masumi.network) agent marketplace. Listed on Sokosumi.
 
-- **Smart Resume Generation**: Creates professional, ATS-optimized resumes
-- **Multiple Styles**: Professional, Modern, Creative, Executive, Technical, Academic
-- **Multiple Formats**: Chronological, Functional, Combination
-- **Cover Letter Generation**: Optional tailored cover letters
-- **Job Description Tailoring**: Customize resume for specific job postings
-- **MIP-003 Compliant**: Full Masumi protocol compatibility
+[![API Status](https://img.shields.io/badge/API-v1.0.0-green)](/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 
-## API Endpoints
+---
+
+## 🔥 Why This Exists
+
+Cold emails suck. Not because the concept is flawed, but because:
+
+1. **Generic templates get ignored** — "I noticed you work at {company_name}" isn't personalization
+2. **Research takes forever** — 15 minutes per prospect, just to find something relevant
+3. **Spam filters are smart** — They've seen every "touching base" and "quick question" trick
+4. **Copywriting is hard** — Most devs (including me) write emails that sound like robots
+
+This agent exists to fix all four. You provide company info, it does deep research, writes emails that sound human, and checks for spam triggers. All in one API call.
+
+---
+
+## 🤖 What This Agent Actually Does
+
+| Step | Agent | What Happens |
+|------|-------|--------------|
+| 1 | **Web Scraper** | Fetches and parses the target company's website |
+| 2 | **Research Agent** | Extracts industry, value prop, recent news, personalization hooks |
+| 3 | **Copy Agent** | Writes 3 subject lines + primary email + follow-up email |
+| 4 | **QA Agent** | Analyzes for spam risk (low/medium/high) — does NOT rewrite |
+
+**Output:** Structured JSON with everything you need. No chat, no fluff, no "As an AI language model..."
+
+---
+
+## 🧠 How the Agent Thinks (Core Logic)
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                         YOUR INPUT                                    │
+│  { company_name, company_website, target_role, product, goal, tone } │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                        WEB SCRAPER                                    │
+│  • Fetches website HTML                                              │
+│  • Strips nav, footer, scripts                                       │
+│  • Extracts readable text (first 8000 chars)                         │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                      RESEARCH AGENT                                   │
+│  Prompt: "Analyze this company for cold outreach..."                 │
+│  Output: { industry, value_prop, recent_news, personalization_hooks }│
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                        COPY AGENT                                     │
+│  Prompt: "Write cold emails using this research..."                  │
+│  Output: { subject_lines[3], primary_email, follow_up_email }        │
+│  Enforces: No spam words, no emojis, tone matching                   │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                         QA AGENT                                      │
+│  Prompt: "Analyze spam risk, DO NOT rewrite..."                      │
+│  Output: { spam_risk_score: "low" | "medium" | "high" }              │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                        FINAL OUTPUT                                   │
+│  { subject_lines, primary_email, follow_up_email,                    │
+│    personalization_points, spam_risk_score }                         │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+Sequential execution. No parallelism. No race conditions. Boring and reliable.
+
+---
+
+## 📋 API Contract
+
+### `POST /run` — Generate Outreach Emails
+
+**Request Body:**
+```json
+{
+  "company_name": "Stripe",
+  "company_website": "https://stripe.com",
+  "target_role": "Head of Growth",
+  "product_description": "AI-powered B2B onboarding tool that reduces time-to-value by 60%",
+  "outreach_goal": "Book a 15-minute intro call",
+  "tone": "professional"
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `company_name` | string | ✅ | The target company |
+| `company_website` | string (URL) | ✅ | Must be valid HTTP/HTTPS URL |
+| `target_role` | string | ✅ | Who you're emailing |
+| `product_description` | string | ✅ | What you're selling (be specific) |
+| `outreach_goal` | string | ✅ | What you want them to do |
+| `tone` | string | ✅ | `professional`, `casual`, or `founder` |
+
+**Response (200 OK):**
+```json
+{
+  "subject_lines": [
+    "Cutting onboarding time at Stripe",
+    "Quick question about Stripe's B2B flow",
+    "For the Head of Growth at Stripe"
+  ],
+  "primary_email": "Hi [Name],\n\nI noticed Stripe recently expanded into...",
+  "follow_up_email": "Hi [Name],\n\nWanted to follow up on my note...",
+  "personalization_points": [
+    "Recent expansion into embedded finance",
+    "Developer-first documentation approach",
+    "Active hiring for growth roles"
+  ],
+  "spam_risk_score": "low"
+}
+```
+
+### `GET /health` — Health Check
+
+Returns `{"status": "ok", "service": "cold-outreach-agent", "version": "1.0.0"}` if alive.
+
+### `GET /docs` — Swagger UI
+
+Interactive API documentation. Try it in browser.
+
+---
+
+## 🔗 MIP-003 Endpoints (Sokosumi Compatible)
+
+This agent is **MIP-003 compliant** for Masumi/Sokosumi integration:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/availability` | GET | Check agent availability |
-| `/input_schema` | GET | Get input data structure |
-| `/start_job` | POST | Start resume generation |
-| `/status` | GET | Check job status |
-| `/docs` | GET | Interactive API documentation |
+| `/availability` | GET | Returns agent availability status |
+| `/input_schema` | GET | Returns expected input format for Sokosumi UI |
+| `/start_job` | POST | Starts a new job (Sokosumi calls this) |
+| `/status?job_id=xxx` | GET | Checks job completion status |
 
-## Quick Start
+---
 
-### Local Development
+## ❌ Failure Modes
+
+Yes, things can go wrong. Here's what and why:
+
+| Code | Error | What Happened | Your Move |
+|------|-------|---------------|-----------|
+| `400` | `validation_error` | Your input JSON is malformed or missing fields | Check the schema, all fields are required |
+| `502` | `scrape_failed` | Couldn't fetch the company website | Is the URL correct? Site might block bots or be down |
+| `500` | `internal_error` | LLM call failed or returned unparseable response | Retry. If persistent, check API key/quota |
+| `500` | `llm_timeout` | Model took too long to respond | Retry. Happens occasionally during high load |
+
+**The honest truth:** If the target website is heavily JavaScript-rendered (SPA), scraping might get minimal content. We grab what we can.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Framework** | FastAPI | Async, fast, auto-generates OpenAPI docs |
+| **Validation** | Pydantic v2 | Strict typing, great error messages |
+| **LLM** | Mistral AI | Fast, cheap, excellent structured output |
+| **Scraping** | httpx + BeautifulSoup | Async HTTP + reliable HTML parsing |
+| **Deployment** | Railway | One-click deploy, handles everything |
+
+**Why not LangChain/CrewAI?** Tried it. Too much abstraction for a simple sequential pipeline. Direct LLM calls are easier to debug.
+
+---
+
+## 🚀 Setup & Run Locally
+
+### Prerequisites
+
+- Python 3.10+ (3.11 recommended)
+- Mistral API key ([get one free](https://console.mistral.ai/api-keys))
+
+### Installation
 
 ```bash
+# Clone and enter
+cd agent-service
+
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: .\venv\Scripts\Activate.ps1
+
+# Activate it
+venv\Scripts\activate      # Windows
+source venv/bin/activate   # macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Set environment variables
-cp .env.example .env
-# Edit .env with your MISTRAL_API_KEY
-
-# Run the server
-uvicorn app.main:app --reload --port 8000
 ```
 
-### Example Request
+### Run
 
 ```bash
-curl -X POST "http://localhost:8000/start_job" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "identifier_from_purchaser": "user123",
-    "input_data": {
-      "full_name": "John Doe",
-      "email": "john@example.com",
-      "phone": "+1 555-123-4567",
-      "location": "San Francisco, USA",
-      "target_role": "Senior Software Engineer",
-      "target_industry": "Technology",
-      "work_experience": [
-        {
-          "job_title": "Software Engineer",
-          "company": "Tech Corp",
-          "location": "San Francisco, USA",
-          "start_date": "Jan 2020",
-          "end_date": "Present",
-          "responsibilities": [
-            "Developed microservices architecture",
-            "Led team of 5 engineers",
-            "Reduced deployment time by 50%"
-          ]
-        }
-      ],
-      "education": [
-        {
-          "degree": "B.S. Computer Science",
-          "institution": "Stanford University",
-          "graduation_date": "May 2019"
-        }
-      ],
-      "technical_skills": ["Python", "JavaScript", "AWS", "Docker", "Kubernetes"],
-      "soft_skills": ["Leadership", "Communication", "Problem Solving"],
-      "style": "professional",
-      "format": "chronological",
-      "include_cover_letter": true
-    }
-  }'
+# Set your API key
+set MISTRAL_API_KEY=your-key-here      # Windows
+export MISTRAL_API_KEY=your-key-here   # macOS/Linux
+
+# Start the server
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Environment Variables
+You should see:
+```
+🚀 Cold Outreach Agent is alive and ready to write emails
+📖 Docs available at /docs
+```
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `MISTRAL_API_KEY` | Mistral AI API key | Yes |
-| `PAYMENT_SERVICE_URL` | Masumi payment service URL | For production |
-| `PAYMENT_API_KEY` | Masumi payment API key | For production |
-| `AGENT_IDENTIFIER` | Registered agent identifier | For production |
-| `NETWORK` | Cardano network (Preprod/Mainnet) | For production |
+Visit **http://localhost:8000/docs** to test.
 
-## Resume Styles
+### Deploy to Railway (One-Click)
 
-- **Professional**: Formal, business-appropriate language
-- **Modern**: Clean, contemporary with action verbs
-- **Creative**: Personality-forward for creative fields
-- **Executive**: Leadership and strategic focus for C-level
-- **Technical**: Skills-prominent for engineering roles
-- **Academic**: Research and publication focused
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new?template=https://github.com/DhanushKenkiri/email-agent-1)
 
-## Author
+**Or manually:**
 
-Dhanush Kenkiri
+1. **Fork/clone this repo** to your GitHub
+2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub Repo**
+3. Select your repo
+4. Add environment variable:
+   - `MISTRAL_API_KEY` = your Mistral API key
+5. Railway auto-deploys. Done. 🚀
+
+**What happens behind the scenes:**
+- Railway detects Python from `requirements.txt`
+- Installs dependencies automatically
+- Uses `Procfile` to run: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Assigns a public URL like `your-app.up.railway.app`
+
+**Files included for Railway:**
+- `Procfile` — Tells Railway how to start the app
+- `railway.json` — Railway-specific config
+- `runtime.txt` — Python version (3.11.6)
+
+---
+
+## 💰 Rate Limits & Cost Reality
+
+### Mistral Free Tier
+- **1 request/second** (burst up to 5)
+- **500,000 tokens/month**
+- No credit card required
+
+For most use cases, free tier is enough. If you're doing bulk outreach (100+ prospects/day), you'll need a paid tier.
+
+### Estimated Cost (Paid Tier)
+- ~3 LLM calls per `/run` request
+- ~2,000 tokens per call
+- **Cost per email generation: ~$0.0005-0.001**
+
+You can generate ~1000 personalized email sets for roughly $1.
+
+---
+
+## 📝 Example Run (Realistic)
+
+**Input:**
+```json
+{
+  "company_name": "Linear",
+  "company_website": "https://linear.app",
+  "target_role": "Head of Product",
+  "product_description": "AI copilot for product managers that auto-generates PRDs from user feedback",
+  "outreach_goal": "Get feedback on our beta",
+  "tone": "founder"
+}
+```
+
+**Output:**
+```json
+{
+  "subject_lines": [
+    "Fellow builder - quick product question",
+    "Saw Linear's approach to issue tracking",
+    "From one PM tool maker to another"
+  ],
+  "primary_email": "Hey,\n\nI've been using Linear for our team and honestly, the speed is unreal. You clearly obsess over the details.\n\nI'm building something adjacent — an AI copilot that helps PMs turn scattered user feedback into structured PRDs. Still early, but the pattern recognition is getting scary good.\n\nWould love your take on the approach. Not a sales pitch — genuinely curious if this resonates with how you think about the PM workflow.\n\n15 minutes if you're open to it?",
+  "follow_up_email": "Hey,\n\nFloating this back up. I know the inbox is brutal.\n\nShort version: AI that watches your feedback channels and drafts PRDs. The \"why now\" is that LLMs finally got good enough to understand product context.\n\nHappy to share a 2-min demo video if that's easier than a call.",
+  "personalization_points": [
+    "Linear's focus on speed and keyboard-first UX",
+    "Their opinionated approach to project management",
+    "Recent Series B and scaling challenges"
+  ],
+  "spam_risk_score": "low"
+}
+```
+
+Notice: `founder` tone is more casual, more direct, acknowledges shared builder experience.
+
+---
+
+## 🗺️ Roadmap
+
+### v1.0 (Current)
+- ✅ Research → Copy → QA pipeline
+- ✅ Three tone options
+- ✅ Spam risk scoring
+- ✅ Structured JSON output
+
+### v1.1 (Next)
+- [ ] LinkedIn profile scraping (for recipient personalization)
+- [ ] Multi-email sequence generation (3-5 touch campaign)
+- [ ] A/B subject line variants with confidence scores
+
+### v1.2 (Future)
+- [ ] CRM integration hooks (HubSpot, Salesforce)
+- [ ] Email sending integration (via SendGrid/Resend)
+- [ ] Response tracking and optimization feedback loop
+
+### v2.0 (Dream)
+- [ ] Full autonomous prospecting: give it an ICP, it finds leads and writes emails
+- [ ] Multi-agent negotiation for copy refinement
+- [ ] Learn from your sent email performance
+
+---
+
+## 💭 Philosophy
+
+This agent is opinionated. It doesn't try to be everything to everyone. It writes cold emails — one specific thing, done well. The research is real (scraped, not hallucinated). The copy follows proven patterns (no gimmicks). The QA is honest (it won't tell you an email is great if it isn't).
+
+Most AI tools try to impress you with creativity. This one tries to get you replies.
+
+---
 
 ## License
 
-MIT
+MIT — do whatever you want with it.
+
+---
+
+*Built by a developer who was tired of writing cold emails. Now an AI does it instead.*
