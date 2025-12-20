@@ -10,7 +10,9 @@ from app.models.schemas import (
     StartJobRequest,
     StartJobResponse,
     JobStatusResponse,
-    JobStatus
+    JobStatus,
+    DemoResponse,
+    DemoOutput
 )
 from app.services.job_manager import job_manager
 from app.config import settings
@@ -22,12 +24,14 @@ router = APIRouter()
 async def check_availability():
     """
     MIP-003 Endpoint: Check if the agent is available.
-    Returns the availability status, agent name, and version.
+    Returns the availability status, agent name, type, and version.
     """
     return AvailabilityResponse(
         status="available",
+        type="masumi-agent",
         name=settings.APP_NAME,
-        version=settings.APP_VERSION
+        version=settings.APP_VERSION,
+        message="Cold Outreach Email Agent is ready to accept jobs"
     )
 
 
@@ -39,122 +43,144 @@ async def get_input_schema():
     """
     schema = [
         {
-            "name": "sender_name",
+            "id": "sender_name",
+            "name": "Sender Name",
             "type": "string",
             "required": True,
             "description": "Your full name"
         },
         {
-            "name": "sender_company",
+            "id": "sender_company",
+            "name": "Sender Company",
             "type": "string",
             "required": True,
             "description": "Your company name"
         },
         {
-            "name": "sender_role",
+            "id": "sender_role",
+            "name": "Sender Role",
             "type": "string",
             "required": True,
             "description": "Your job title/role"
         },
         {
-            "name": "sender_email",
+            "id": "sender_email",
+            "name": "Sender Email",
             "type": "string",
             "required": False,
             "description": "Your email address (optional)"
         },
         {
-            "name": "recipient_name",
+            "id": "recipient_name",
+            "name": "Recipient Name",
             "type": "string",
             "required": True,
             "description": "Recipient's name"
         },
         {
-            "name": "recipient_company",
+            "id": "recipient_company",
+            "name": "Recipient Company",
             "type": "string",
             "required": True,
             "description": "Recipient's company name"
         },
         {
-            "name": "recipient_role",
+            "id": "recipient_role",
+            "name": "Recipient Role",
             "type": "string",
             "required": False,
             "description": "Recipient's job title/role"
         },
         {
-            "name": "recipient_industry",
+            "id": "recipient_industry",
+            "name": "Recipient Industry",
             "type": "string",
             "required": False,
             "description": "Recipient's industry"
         },
         {
-            "name": "product_or_service",
+            "id": "product_or_service",
+            "name": "Product or Service",
             "type": "string",
             "required": True,
             "description": "What product/service are you offering?"
         },
         {
-            "name": "value_proposition",
+            "id": "value_proposition",
+            "name": "Value Proposition",
             "type": "string",
             "required": True,
             "description": "Key value proposition - what problem do you solve?"
         },
         {
-            "name": "personalization_notes",
+            "id": "personalization_notes",
+            "name": "Personalization Notes",
             "type": "string",
             "required": False,
             "description": "Any personal details about the recipient (recent news, shared connections, etc.)"
         },
         {
-            "name": "call_to_action",
+            "id": "call_to_action",
+            "name": "Call to Action",
             "type": "string",
             "required": False,
             "description": "Desired call to action (e.g., 'schedule a 15-min call')"
         },
         {
-            "name": "tone",
-            "type": "string",
+            "id": "tone",
+            "name": "Tone",
+            "type": "option",
             "required": False,
-            "description": "Desired tone: 'professional', 'casual', 'friendly', 'formal', 'persuasive', or 'consultative'",
-            "default": "professional"
+            "description": "Desired tone of the email",
+            "data": {
+                "options": ["professional", "casual", "friendly", "formal", "persuasive", "consultative"]
+            }
         },
         {
-            "name": "length",
-            "type": "string",
+            "id": "length",
+            "name": "Length",
+            "type": "option",
             "required": False,
             "description": "Desired length: 'short' (~50-75 words), 'medium' (~100-150 words), or 'long' (~200-250 words)",
-            "default": "medium"
+            "data": {
+                "options": ["short", "medium", "long"]
+            }
         },
         {
-            "name": "include_subject_line",
+            "id": "include_subject_line",
+            "name": "Include Subject Line",
             "type": "boolean",
             "required": False,
-            "description": "Whether to generate a subject line",
-            "default": True
+            "description": "Whether to generate a subject line"
         },
         {
-            "name": "num_variations",
-            "type": "integer",
+            "id": "num_variations",
+            "name": "Number of Variations",
+            "type": "number",
             "required": False,
             "description": "Number of email variations to generate (1-3)",
-            "default": 1,
-            "minimum": 1,
-            "maximum": 3
+            "validations": [
+                {"min": 1},
+                {"max": 3}
+            ]
         },
         {
-            "name": "previous_interaction",
+            "id": "previous_interaction",
+            "name": "Previous Interaction",
             "type": "string",
             "required": False,
             "description": "Any previous interaction or context"
         },
         {
-            "name": "specific_pain_points",
-            "type": "array",
+            "id": "specific_pain_points",
+            "name": "Specific Pain Points",
+            "type": "string",
             "required": False,
-            "description": "Specific pain points to address",
-            "items": {"type": "string"}
+            "description": "Specific pain points to address (comma-separated)"
         },
         {
-            "name": "competitor_mentions",
+            "id": "competitor_mentions",
+            "name": "Competitor Mentions",
             "type": "string",
             "required": False,
             "description": "Any competitor context to reference"
@@ -211,4 +237,45 @@ async def get_job_status(job_id: str):
         created_at=job["created_at"],
         updated_at=job["updated_at"],
         error=job["error"]
+    )
+
+
+@router.get("/demo", response_model=DemoResponse)
+async def get_demo():
+    """
+    MIP-003 Optional Endpoint: Get demo data for marketing purposes.
+    Returns example input and output to showcase the service's capabilities.
+    """
+    return DemoResponse(
+        input={
+            "sender_name": "Alex Chen",
+            "sender_company": "TechStartup AI",
+            "sender_role": "Founder & CEO",
+            "sender_email": "alex@techstartupai.com",
+            "recipient_name": "Sarah Johnson",
+            "recipient_company": "Enterprise Corp",
+            "recipient_role": "VP of Engineering",
+            "recipient_industry": "Financial Services",
+            "product_or_service": "AI-powered code review platform",
+            "value_proposition": "Reduce code review time by 60% while catching 3x more bugs before production",
+            "personalization_notes": "Recently spoke at DevConf about scaling engineering teams",
+            "call_to_action": "15-minute demo call",
+            "tone": "professional",
+            "length": "medium"
+        },
+        output=DemoOutput(
+            result="""Subject: Scaling engineering at Enterprise Corp - quick thought
+
+Hi Sarah,
+
+Caught your DevConf talk on scaling engineering teams - your point about review bottlenecks really resonated with us.
+
+We built an AI code review platform that's helping teams like yours cut review time by 60% while actually catching more bugs (3x more, based on customer data). Given Enterprise Corp's growth, thought this might be worth a quick conversation.
+
+Would you be open to a 15-minute call next week to see if this could help your team ship faster?
+
+Best,
+Alex Chen
+Founder, TechStartup AI"""
+        )
     )

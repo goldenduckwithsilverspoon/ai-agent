@@ -79,10 +79,12 @@ class JobStatusResponse(BaseModel):
 
 
 class AvailabilityResponse(BaseModel):
-    """Response body for /availability endpoint"""
+    """Response body for /availability endpoint - MIP-003 compliant"""
     status: str = "available"
+    type: str = "masumi-agent"
     name: str
     version: str
+    message: Optional[str] = None
 
 
 class InputSchemaResponse(BaseModel):
@@ -96,3 +98,14 @@ class StartJobResponse(BaseModel):
     status: JobStatus
     payment_info: Optional[Dict[str, Any]] = None
     message: str
+
+
+class DemoOutput(BaseModel):
+    """Output structure for demo endpoint"""
+    result: str
+
+
+class DemoResponse(BaseModel):
+    """Response body for /demo endpoint - MIP-003 optional"""
+    input: Dict[str, Any]
+    output: DemoOutput
